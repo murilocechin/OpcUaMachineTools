@@ -10,6 +10,19 @@ Examples, small programs and how-tos regarding OPC UA on machine tools.
 * [NetCore examples](/Examples/NetCore)
 * [NodeRed examples](/Examples/NodeRed)
 
+### Run the machine demo server with Docker
+
+With Docker Desktop running Linux containers, run these commands from the repository root:
+
+```sh
+docker build -t opcua-machine-tools:local .
+docker run --rm --name opcua-machine-tools -p 50000:50000 opcua-machine-tools:local
+```
+
+Connect an OPC UA client to `opc.tcp://localhost:50000` (use the Docker host's IP address for remote clients). Stop the server with Ctrl+C.
+
+The image runs the Python machine demo server and includes its sample recordings and demo certificates. During the build, its endpoint is configured to listen on `0.0.0.0` inside the container so the published port is reachable. Playback settings are defined in `MachineDemoServer/Python/ReplayConfiguration.xml`; rebuild the image after changing them.
+
 ### How-tos
 * [How to connect to different machines via the OPC UA Gateway](/Doc/opcuagateway.md)
 * [How to determine the connection state of a machine aggregated in the OPC UA gateway](/Doc/connectionstate.md)
