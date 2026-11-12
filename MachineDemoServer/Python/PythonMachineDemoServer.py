@@ -32,12 +32,14 @@ Alarms/Messages node (s=179) are replayed as OPC UA events, all other
 entries as plain variable writes.
 
 Endpoint URL, playback speed and record file are configured in
-ReplayConfiguration.xml. 
+ReplayConfiguration.xml. The PLAY_SPEED_FACTOR environment variable overrides
+the configured playback speed when set.
 """
 
 import asyncio
 import json
 import importlib
+import math
 import datetime
 import os, sys
 import re
@@ -259,9 +261,11 @@ class ReplayConfig:
 def load_replay_configuration(path):
     doc = minidom.parse(path)
     execution = doc.getElementsByTagName("execution")[0]
-    playSpeedFactor = float(execution.getAttribute("playSpeedFactor"))
-    if playSpeedFactor <= 0:
-        raise ValueError(f"playSpeedFactor must be greater than 0, but is {playSpeedFactor}")
+    playSpeedFactor = float(os.getenv(
+        "PLAY_SPEED_FACTOR", execution.getAttribute("playSpeedFactor")))
+    if not math.isfinite(playSpeedFactor) or playSpeedFactor <= 0:
+        raise ValueError(
+            f"PLAY_SPEED_FACTOR / playSpeedFactor must be a finite number greater than 0, but is {playSpeedFactor}")
     return ReplayConfig(
         endpointUrl=doc.getElementsByTagName("endpoint")[0].getAttribute("url"),
         playSpeedFactor=playSpeedFactor,
@@ -366,6 +370,7 @@ async def main():
     print(f"python-dateutil: {dateutil.__version__}")
 
     config = load_replay_configuration("ReplayConfiguration.xml")
+    print(f"playSpeedFactor: {config.playSpeedFactor:g}")
     server = await create_server(config)
     register_condition_refresh_mocks(server)
     typeInfoCache = TypeInfoCache(server)
