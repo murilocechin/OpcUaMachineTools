@@ -37,6 +37,48 @@ The factor divides the recorded time between entries; it does not change the fix
 
 After pulling this feature for the first time, rebuild the image using `docker build -t opcua-machine-tools:local .`. For subsequent speed changes, stop the existing container and recreate it with the desired `-e PLAY_SPEED_FACTOR=...` value; no image rebuild is needed. With `--rm`, stopping the container removes it and frees its name. Simply restarting an existing container does not change its environment variables.
 
+#### Run in the background and manage the container
+
+To run the OPC UA server in the background (detached mode), add `-d`. The command returns to your terminal immediately; the server keeps running:
+
+```sh
+docker run -d --name opcua-machine-tools -p 50000:50000 -e PLAY_SPEED_FACTOR=100 opcua-machine-tools:local
+```
+
+This example intentionally omits `--rm` so a stopped container can be started again or restarted. Build the image first as shown above. Useful commands:
+
+```sh
+# List running containers
+docker ps
+
+# List running and stopped containers
+docker ps -a
+
+# Follow logs (Ctrl+C stops following logs, not the container)
+docker logs -f opcua-machine-tools
+
+# Show recent logs without following them
+docker logs --tail 100 opcua-machine-tools
+
+# Stop, start, or restart the same container
+docker stop opcua-machine-tools
+docker start opcua-machine-tools
+docker restart opcua-machine-tools
+
+# Remove a stopped container
+docker rm opcua-machine-tools
+```
+
+To **change the playback speed**, recreate the container with a new environment variable (a simple `docker restart` keeps the old value):
+
+```sh
+docker stop opcua-machine-tools
+docker rm opcua-machine-tools
+docker run -d --name opcua-machine-tools -p 50000:50000 -e PLAY_SPEED_FACTOR=20 opcua-machine-tools:local
+```
+
+`docker stop` and `docker rm` are separate commands here because the detached container is not using `--rm`. If you started the earlier foreground example with `--rm`, stopping it automatically removes it.
+
 ### How-tos
 * [How to connect to different machines via the OPC UA Gateway](/Doc/opcuagateway.md)
 * [How to determine the connection state of a machine aggregated in the OPC UA gateway](/Doc/connectionstate.md)
